@@ -19,7 +19,7 @@ type AdaptivePopoverProps = PopoverProps & {
   displayArea?: Rect;
   getDisplayAreaOffset: () => Promise<Point>;
   showBackground?: boolean;
-}
+};
 
 export default class AdaptivePopover extends Component<AdaptivePopoverProps, AdaptivePopoverState> {
   state = {
@@ -28,12 +28,14 @@ export default class AdaptivePopover extends Component<AdaptivePopoverProps, Ada
     defaultDisplayArea: null,
     displayAreaOffset: null,
     showing: false
-  }
+  };
 
   getUnshiftedDisplayArea(): Rect {
-    return this.props.displayArea ||
+    return (
+      this.props.displayArea ||
       this.state.defaultDisplayArea ||
-      new Rect(0, 0, Dimensions.get('window').width, Dimensions.get('window').height);
+      new Rect(0, 0, Dimensions.get('window').width, Dimensions.get('window').height)
+    );
   }
 
   // Apply insets and shifts if needed
@@ -77,7 +79,10 @@ export default class AdaptivePopover extends Component<AdaptivePopoverProps, Ada
   }
 
   componentDidMount(): void {
-    this.handleResizeEventSubscription = Dimensions.addEventListener('change', this.handleResizeEvent);
+    this.handleResizeEventSubscription = Dimensions.addEventListener(
+      'change',
+      this.handleResizeEvent
+    );
     if (this.props.fromRect) this.setState({ fromRect: this.props.fromRect });
     else if (this.props.fromRef) this.calculateRectFromRef();
     this._isMounted = true;
@@ -86,12 +91,7 @@ export default class AdaptivePopover extends Component<AdaptivePopoverProps, Ada
   componentWillUnmount(): void {
     this._isMounted = false;
 
-    if (typeof this.handleResizeEventSubscription?.remove === 'function')
-      this.handleResizeEventSubscription?.remove();
-    else
-      // Backward-compatibility with RN <= 0.63
-      Dimensions.removeEventListener('change', this.handleResizeEvent);
-
+    this.handleResizeEventSubscription?.remove();
     this.keyboardDidShowSubscription?.remove();
     this.keyboardDidHideSubscription?.remove();
   }
@@ -115,17 +115,13 @@ export default class AdaptivePopover extends Component<AdaptivePopoverProps, Ada
     if (this.props.isVisible && prevProps.isVisible) {
       if (
         changedProps.includes('displayArea') ||
-        (
-          this.displayAreaStore &&
-          !this.getDisplayArea().equals(this.displayAreaStore)
-        )
+        (this.displayAreaStore && !this.getDisplayArea().equals(this.displayAreaStore))
       ) {
         this.debug('componentDidUpdate - displayArea changed', this.getDisplayArea());
         this.displayAreaStore = this.getDisplayArea();
       }
     }
   }
-
 
   // First thing called when device rotates
   handleResizeEvent(change: unknown): void {
@@ -137,7 +133,7 @@ export default class AdaptivePopover extends Component<AdaptivePopoverProps, Ada
 
   debug(line: string, obj?: unknown): void {
     if (DEBUG || this.props.debug)
-      console.log(`[${(new Date()).toISOString()}] ${line}${obj ? `: ${JSON.stringify(obj)}` : ''}`);
+      console.log(`[${new Date().toISOString()}] ${line}${obj ? `: ${JSON.stringify(obj)}` : ''}`);
   }
 
   async setDefaultDisplayArea(newDisplayArea: Rect): Promise<void> {
@@ -151,18 +147,14 @@ export default class AdaptivePopover extends Component<AdaptivePopoverProps, Ada
      * first mount when the popover re-opens
      */
     const isValidDisplayArea = newDisplayArea.width > 0 && newDisplayArea.height > 0;
-    if (
-      (!defaultDisplayArea || !newDisplayArea.equals(defaultDisplayArea)) &&
-      isValidDisplayArea
-    ) {
+    if ((!defaultDisplayArea || !newDisplayArea.equals(defaultDisplayArea)) && isValidDisplayArea) {
       this.debug('setDefaultDisplayArea - newDisplayArea', newDisplayArea);
       if (!this.skipNextDefaultDisplayArea) {
         const displayAreaOffset = await this.props.getDisplayAreaOffset();
         this.debug('setDefaultDisplayArea - displayAreaOffset', displayAreaOffset);
         await new Promise(resolve => {
-          this.setState(
-            { defaultDisplayArea: newDisplayArea, displayAreaOffset },
-            () => resolve(null)
+          this.setState({ defaultDisplayArea: newDisplayArea, displayAreaOffset }, () =>
+            resolve(null)
           );
         });
 
@@ -202,8 +194,12 @@ export default class AdaptivePopover extends Component<AdaptivePopoverProps, Ada
     const combinedY = Math.min(displayArea.height + displayArea.y, absoluteVerticalCutoff);
 
     this.setState({
-      shiftedDisplayArea:
-        new Rect(displayArea.x, displayArea.y, displayArea.width, combinedY - displayArea.y)
+      shiftedDisplayArea: new Rect(
+        displayArea.x,
+        displayArea.y,
+        displayArea.width,
+        combinedY - displayArea.y
+      )
     });
   }
 
@@ -274,8 +270,14 @@ export default class AdaptivePopover extends Component<AdaptivePopoverProps, Ada
         onOpenStart={() => {
           onOpenStart?.();
           this.debug('Setting up keyboard listeners');
-          this.keyboardDidShowSubscription = Keyboard.addListener('keyboardDidShow', this.keyboardDidShow);
-          this.keyboardDidHideSubscription = Keyboard.addListener('keyboardDidHide', this.keyboardDidHide);
+          this.keyboardDidShowSubscription = Keyboard.addListener(
+            'keyboardDidShow',
+            this.keyboardDidShow
+          );
+          this.keyboardDidHideSubscription = Keyboard.addListener(
+            'keyboardDidHide',
+            this.keyboardDidHide
+          );
           this.displayAreaStore = this.getDisplayArea();
           this.setState({ showing: true });
         }}
@@ -301,6 +303,5 @@ export default class AdaptivePopover extends Component<AdaptivePopoverProps, Ada
         onDisplayAreaChanged={rect => this.setDefaultDisplayArea(rect)}
       />
     );
-
   }
 }
